@@ -22,12 +22,22 @@ exports.getAllTours = async (req, res, next) => {
 
     if (req.query.sort) {
         const sortBy = req.query.sort.split(",").join(" ");
+        queries.sortBy = sortBy;
     }
     const sortBy = queries.sortBy ? queries.sortBy : {};
-    console.log(sortBy);
 
+    if (req.query.page) {
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * parseInt(limit);
+        queries.skip = skip;
+        queries.limit = parseInt(limit);
+    }
     try {
-        const tours = await Tour.find({}).select(fields).sort(sortBy);
+        const tours = await Tour.find({})
+            .select(fields)
+            .sort(sortBy)
+            .limit(queries.limit)
+            .skip(queries.skip);
         res.status(200).json(tours);
     } catch (error) {
         next(error);
